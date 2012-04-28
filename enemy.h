@@ -1,12 +1,12 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
+#include "bullet.h"
+
 #include <QImage>
 #include <QList>
 #include <QPoint>
 #include <QRect>
-
-enum direction{UP=1,DOWN,LEFT,RIGHT,UPLEFT,UPRIGHT,DOWNLEFT,DOWNRIGHT};
 
 class Enemy
 {
@@ -22,7 +22,7 @@ class Enemy
 		///*** Member Functions ***///
 		void move(int, int);
 		void takeDamage(int);
-		void updateEnemy(QPoint);
+		virtual void updateEnemy(QPoint) = 0;
 		
 		///*** Getters ***///
 		int getHealth();

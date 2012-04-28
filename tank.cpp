@@ -4,6 +4,8 @@
 Tank::Tank() 
 	 : Player()
 {
+	health = 100;
+	mana = 50;
 	maxHealth = 100;
 	maxMana = 50;
 	type = TANK;
@@ -13,12 +15,10 @@ Tank::Tank()
 	unlocked = false;
 	frameCount = 1;
 	attacking = false;
-	//activeAttack = currAttack;
 	
 	location.setX(400);
 	location.setY(300);
 	hitBox.setRect(0,0,11,17);
-	resetState();
 }
 
 void Tank::attackAnimation()
@@ -30,8 +30,6 @@ void Tank::attackAnimation()
 
 bool Tank::healthCheck()
 {
-	if(frameCount%30 == 0)
-		health++;
 	if(health < 1)
 	{
 		health = 0;
@@ -50,7 +48,7 @@ void Tank::manaCheck()
 		mana = 50;
 	if(mana < 0)
 		mana = 0;
-	if(mana < 20)
+	if(mana < 10)
 		attacking = false;
 }
 
@@ -93,7 +91,7 @@ void Tank::manaAttackAnimation()
 				break;
 		}
 		if(frameCount%30 == 0)
-			mana-=20;
+			mana-=10;
 	}
 	else
 		attacking = false;

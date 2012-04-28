@@ -14,18 +14,18 @@ class Player
 {
 
 	public:
-		///*** Constructor and Deconstructor ***///
+		///*** Constructor and Destructor ***///
 		Player();
 		~Player();
 		
 		///*** Members ***///
 		QRect hitBox;
 		Bomb *bomb;
+		bool exploding;
 		bool bombSet;
 		
 		///*** Member Functions ***///
 		void move(int, int);
-		void resetState();
 		void takeDamage(int);
 		void giveExperience(int);
 		void restartFrameCount();

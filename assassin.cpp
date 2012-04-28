@@ -5,6 +5,8 @@ Assassin::Assassin()
 		: Player()
 {
 	bomb = new Bomb();
+	health = 50;
+	mana = 50;
 	maxHealth = 50;
 	maxMana = 50;
 	type = ASSN;
@@ -20,7 +22,6 @@ Assassin::Assassin()
 	location.setX(400);
 	location.setY(300);
 	hitBox.setRect(0,0,11,17);
-	resetState();
 }
 
 Assassin::~Assassin()
@@ -82,13 +83,18 @@ bool Assassin::healthCheck()
 void Assassin::manaCheck()
 {
 	if(frameCount%30 == 0)	
-		mana+=5;
+		mana+=3;
 	if(mana > 50)
 		mana = 50;
 	if(mana < 0)
 		mana = 0;
-	if(mana < 20)
-		attacking = false;
+	if(experience >= 5)
+	{
+		if(mana < 10)
+			unlocked = false;
+		else
+			unlocked = true;
+	}
 }
 
 void Assassin::loadAnimations()
@@ -138,6 +144,7 @@ void Assassin::manaAttackAnimation()
 			{
 				case 0:
 					manaAttackFrame = manaAttackSprite.at(5);
+					mana-=10;
 					bombSet = false;
 					exploding = false;
 					attacking = false;
@@ -160,8 +167,10 @@ void Assassin::manaAttackAnimation()
 			}
 		} else 
 		{
-			bomb = new Bomb(location.x()-11,location.y()-11);
-			manaAttackFrame.load("bomb.png");
+			bomb = new Bomb(location.x(),location.y());
+			QImage temp;
+			temp.load("bomb.png");
+			manaAttackFrame = temp.scaled(50,50,Qt::KeepAspectRatio);
 			bombSet = true;
 			attacking = false;
 		}			

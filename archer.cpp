@@ -1,34 +1,37 @@
 #include "archer.h"
 #include <iostream>
 
-Archer::Archer(int x, int y) 
+Archer::Archer(int x, int y, int xx, int yy) 
 	 : Enemy(x, y)
 {
 	health = 30;
+	bullet = new Bullet(x, y, xx, yy);
+	attacking = true;
+	
 	loadAnimations();
+}
+
+void Archer::makeBullet(QPoint playerXY)
+{
+	bullet = new Bullet(location.x(), location.y(), playerXY.x(), playerXY.y());
+}
+
+void Archer::updateEnemy(QPoint playerXY)
+{
+	frameCount++;
+	if(frameCount > 400)
+		frameCount = 1;
+	movement(playerXY);
+	if(attacking)
+	{
+		attackAnimation();
+		if(frameCount%5 == 0)
+			bullet->move(playerXY);
+	}
 }
 
 void Archer::movement(QPoint playerXY)
 {
-	if(frameCount%45 == 0)
-	{
-		/*if(playerXY.x() > location.x())
-			location.setX(location.x()+5);
-		if(playerXY.x() < location.x())
-			location.setX(location.x()-5);
-		if(playerXY.y() > location.y())
-			location.setY(location.y()+5);
-		if(playerXY.y() < location.y())
-			location.setY(location.y()-5);*/
-	}
-}
-
-void Archer::shoot(QPoint playerXY)
-{
-	if(frameCount%45 == 0)
-	{
-		
-	}
 }
 
 void Archer::loadAnimations()

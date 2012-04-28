@@ -1,4 +1,5 @@
 #include "enemy.h"
+#include "bullet.h"
 #include <iostream>
 
 ///*** Constructor and Destructor ***///
@@ -9,6 +10,7 @@ Enemy::Enemy(int x, int y)
 	
 	location.setX(x);
 	location.setY(y);
+	
 	//hitBox.setRect(0,0,30,30);
 }
 
@@ -29,18 +31,6 @@ void Enemy::move(int x, int y)
 void Enemy::takeDamage(int dmg)
 {
 	health-=dmg;
-}
-
-void Enemy::updateEnemy(QPoint playerXY)
-{
-	frameCount++;
-	if(frameCount > 400)
-		frameCount = 1;
-	movement(playerXY);
-	if(attacking)
-	{
-		attackAnimation();
-	}
 }
 
 ///*** Getters ***///

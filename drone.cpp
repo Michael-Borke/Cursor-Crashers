@@ -8,6 +8,18 @@ Drone::Drone(int x, int y)
 	loadAnimations();
 }
 
+void Drone::updateEnemy(QPoint playerXY)
+{
+	frameCount++;
+	if(frameCount > 400)
+		frameCount = 1;
+	movement(playerXY);
+	if(attacking)
+	{
+		attackAnimation();
+	}
+}
+
 void Drone::movement(QPoint playerXY)
 {
 	if(frameCount%5 == 0)

@@ -22,13 +22,6 @@ void Player::move(int x, int y)
 	manaAttackFrame.rect().moveTo(location);	
 }
 
-void Player::resetState()
-{
-	health = 100;
-	mana = 50;
-	hitBox.moveTo(400, 300);
-}
-
 void Player::takeDamage(int dmg)
 {
 	health-=dmg;
@@ -60,9 +53,9 @@ bool Player::updatePlayer()
 		hitBox.setWidth(11);
 		hitBox.setHeight(17);
 	}
-	attackAnimation();
 	if(experience > 4)
 		unlocked = true;
+	attackAnimation();
 	if(!healthCheck())
 		return false;
 	manaCheck();

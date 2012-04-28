@@ -9,14 +9,19 @@
 class Bomb
 {
 	public:
+		///*** Constructor/Destructor ***///
 		Bomb();
 		Bomb(int, int);
 		~Bomb();
 		
+		///*** Members ***///
 		QRect hitBox;
+		
+		///*** Member Functions ***///
 		QPoint getLocation();
 		
 	private:
+		///*** Members ***///
 		QPoint location;	
 };
 

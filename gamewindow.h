@@ -3,12 +3,10 @@
 #include <QtGui>
 #include <QFrame>
 #include <QLabel>
+#include <QPushButton>
+#include <QLCDNumber>
 #include <QWidget>
 #include "game.h"
-
-class QLCDNumber;
-class QLabel;
-class QPushButton;
 
 class Game;
 
@@ -16,24 +14,26 @@ class GameWindow : public QWidget
 {
 	Q_OBJECT
 
-	public:	
+	public:
+		///*** Constructor ***///
 		GameWindow();
-		void center(QWidget &widget);
+			
+	public slots:
+		///*** Slots ***///
+		void startGame();
 
 	private:
-//		QLabel *createLabel(const QString &text);
+		///*** Members ***///
+		Game *game;		
+		QWidget *field;
 		QWidget *select;
-		Game *game;
-		/*QLCDNumber *score;
-		QLCDNumber *level;*/
+		QLCDNumber *score;
+		QLCDNumber *level;
 		QLabel *selectLabel;
-		/*QLabel *scoreLabel;
-		QLabel *levelLabel;*/
+		QLabel *scoreLabel;
+		QLabel *levelLabel;
 		QPushButton *startTankButton;
 		QPushButton *startSinButton;
-//		QPushButton *quitButton;
-//		QPushButton *pauseButton;
-//		QPushButton *rulesButton;
  };
 
  #endif

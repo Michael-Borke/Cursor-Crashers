@@ -12,16 +12,13 @@ Game::Game(QWidget *parent)
 	setFocusPolicy(Qt::StrongFocus);
 	setPalette(QPalette(QColor(250, 250, 200)));
 	setAutoFillBackground(true);
-	x = 400;
-	y = 300;
 	frameTimer = 0;
-//	gameOver = false;
-//	gameWon = false;
+	paused = false;
+	gameOver = false;
 	gameStarted = false;
 	canSpawnArcher = false;
-//	level=0;
-//	score=0;
-	startTankGame();
+	level=1;
+	score=0;
 }
 
 Game::~Game()
@@ -29,117 +26,143 @@ Game::~Game()
 	delete player;
 	for(int i=0;i<drones.size();i++)
 		delete drones.at(i);
+	for(int i=0;i<archers.size();i++)
+		delete archers.at(i);
 }
 
 void Game::paintEvent(QPaintEvent *event)
 {
-	///*** Setup Painter ***///
-	QPainter painter(this);
-	QBrush normal(painter.brush());
-	QBrush manaBar(Qt::blue,Qt::SolidPattern);
-	QBrush healthBar(Qt::green,Qt::SolidPattern);
-	
-	///*** Draw Player ***///
-	if(player->getType() == TANK)
+	if(gameStarted)
 	{
-		if(player->getCanAttack())
-			painter.drawImage(player->getLocation().x()-9,player->getLocation().y()-5,player->getAttackFrame());
-		if(player->getAttacking())
-			painter.drawImage(player->getLocation().x()-10,player->getLocation().y()-10,player->getManaAttackFrame());
-	} else if(player->getType() == ASSN) {
-		if(player->getCanAttack())
+		///*** Setup Painter ***///
+		QPainter painter(this);
+		QBrush normal(painter.brush());
+		QBrush manaBar(Qt::blue,Qt::SolidPattern);
+		QBrush healthBar(Qt::green,Qt::SolidPattern);
+		
+		///*** Prevent painter from drawing if the game is over ***///
+		if (gameOver) 
 		{
-			painter.drawImage(player->getLocation().x()-20,player->getLocation().y()-17,player->getAttackFrame());
+			painter.end();
+			QPainter painter(this);
+		
+			QFont font("Courier", 15, QFont::DemiBold);
+			QFontMetrics fm(font);
+			int textWidth = fm.width("Game Over!");
+			int textWidth2 = fm.width("Press ESC to close window");
+
+			painter.setFont(font);
+
+			painter.translate(QPoint(400, 300));
+			painter.drawText(-textWidth/2, 0, "Game Over!");
+			painter.drawText(-textWidth2/2, 15, "Press ESC to close window");
+			killTimer(timerId);
+			std::cout << "BLAHBLAHBLAH\n";
 		}
-		if(player->bombSet)
-			painter.drawImage(player->bomb->getLocation().x(),player->bomb->getLocation().y(),player->getManaAttackFrame());
-	}
 	
-	///*** Draw Enemies ***///
-	for(int i=0;i<drones.size();i++)
-	{
-		painter.setBrush(healthBar);
-		painter.drawRect(drones.at(i)->getLocation().x()-15,drones.at(i)->getLocation().y()-20,drones.at(i)->getHealth(), 4);
-		painter.setBrush(normal);
-		painter.drawImage(drones.at(i)->getLocation().x()-15,drones.at(i)->getLocation().y()-15,drones.at(i)->getAttackFrame());
-	}
-	for(int i=0;i<archers.size();i++)
-	{
-		/*painter.setBrush(healthBar);
-		painter.drawRect(archers.at(i)->getLocation().x()-15,archers.at(i)->getLocation().y()-20,archers.at(i)->getHealth(), 4);*/
-		painter.setBrush(normal);
-		painter.drawImage(archers.at(i)->getLocation().x()-15,archers.at(i)->getLocation().y()-15,archers.at(i)->getAttackFrame());
-	}
-	
-	///*** Draw Status Bars ***///
-	painter.setBrush(healthBar);
-	painter.drawRect(5,5,player->getHealth(),10);
-	painter.setBrush(normal);
-	painter.drawRect(5,5,player->getMaxHealth(),10);
-	painter.setBrush(manaBar);
-	painter.drawRect(5,20,player->getMana(),10);
-	painter.setBrush(normal);
-	painter.drawRect(5,20,player->getMaxMana(),10);
-	
-	///*** Track Player Level and Progress ***///
-	if (player->getXP() < 1) 
-	{
+		///*** Draw Player ***///
 		if(player->getType() == TANK)
-		{	
+		{
+			if(player->getCanAttack())
+				painter.drawImage(player->getLocation().x()-9,player->getLocation().y()-5,player->getAttackFrame());
+			if(player->getAttacking())
+				painter.drawImage(player->getLocation().x()-10,player->getLocation().y()-10,player->getManaAttackFrame());
+		} else if(player->getType() == ASSN) {
+			if(player->getCanAttack())
+			{
+				painter.drawImage(player->getLocation().x()-20,player->getLocation().y()-17,player->getAttackFrame());
+			}
+			if(player->bombSet)
+				painter.drawImage(player->bomb->getLocation().x()-20,player->bomb->getLocation().y()-17,player->getManaAttackFrame());
+		}
+	
+		///*** Draw Enemies ***///
+		for(int i=0;i<drones.size();i++)
+		{
+			painter.setBrush(healthBar);
+			painter.drawRect(drones.at(i)->getLocation().x()-15,drones.at(i)->getLocation().y()-20,drones.at(i)->getHealth(), 4);
+			painter.setBrush(normal);
+			painter.drawImage(drones.at(i)->getLocation().x()-15,drones.at(i)->getLocation().y()-15,drones.at(i)->getAttackFrame());
+		}
+		if(canSpawnArcher)
+		{
+			for(int i=0;i<archers.size();i++)
+			{
+				painter.setBrush(normal);
+				painter.drawImage(archers.at(i)->getLocation().x()-15,archers.at(i)->getLocation().y()-15,archers.at(i)->getAttackFrame());
+				if(archers.at(i)->getAttacking())
+				{
+					painter.setBrush(manaBar);
+					painter.drawEllipse(archers.at(i)->bullet->getLocation().x(),archers.at(i)->bullet->getLocation().y(),10,10);
+
+				}
+			}
+		}
+	
+		///*** Draw Status Bars ***///
+		painter.setBrush(healthBar);
+		painter.drawRect(5,5,player->getHealth(),10);
+		painter.setBrush(normal);
+		painter.drawRect(5,5,player->getMaxHealth(),10);
+		painter.setBrush(manaBar);
+		painter.drawRect(5,20,player->getMana(),10);
+		painter.setBrush(normal);
+		painter.drawRect(5,20,player->getMaxMana(),10);
+	
+		///*** Give player tips at appropriate levels ***///
+		if (player->getXP() < 1) 
+		{
+			if(player->getType() == TANK)
+			{	
+				QFont font("Courier", 15, QFont::DemiBold);
+				QFontMetrics fm(font);
+				int textWidth = fm.width("Left Click to 'Enrage', then run into an enemy!");
+
+				painter.setFont(font);
+
+				painter.translate(QPoint(400, 300));
+				painter.drawText(-textWidth/2, 0, "Left Click to 'Enrage', then run into an enemy!");
+			}
+			else if(player->getType() == ASSN)
+			{	
+				QFont font("Courier", 15, QFont::DemiBold);
+				QFontMetrics fm(font);
+				int textWidth = fm.width("Left Click to Slash enemies, but don't get too close!");
+
+				painter.setFont(font);
+
+				painter.translate(QPoint(400, 300));
+				painter.drawText(-textWidth/2, 0, "Left Click to Slash enemies, but don't get too close!");
+			}
+		}
+		if (player->getXP() == 5) 
+		{
 			QFont font("Courier", 15, QFont::DemiBold);
 			QFontMetrics fm(font);
-			int textWidth = fm.width("Left Click to 'Enrage', then run into an enemy!");
+			int textWidth = fm.width("Level Up!\nRight Click for New Skill");
 
 			painter.setFont(font);
 
 			painter.translate(QPoint(400, 300));
-			painter.drawText(-textWidth/2, 0, "Left Click to 'Enrage', then run into an enemy!");
+			painter.drawText(-textWidth/2, 0, "Level Up! Right Click for New Skill");
+			level=2;
+			emit levelChanged(level);
+			canSpawnArcher = true;
 		}
-		else if(player->getType() == ASSN)
-		{	
+		if (player->getXP() == 10)
+		{
 			QFont font("Courier", 15, QFont::DemiBold);
 			QFontMetrics fm(font);
-			int textWidth = fm.width("Left Click to Slash enemies, but don't get too close!");
+			int textWidth = fm.width("Level Up!");
 
 			painter.setFont(font);
 
 			painter.translate(QPoint(400, 300));
-			painter.drawText(-textWidth/2, 0, "Left Click to Slash enemies, but don't get too close!");
+			painter.drawText(-textWidth/2, 0, "Level Up!");
+			canSpawnArcher = true;
+			level=3;
+			emit levelChanged(level);
 		}
-	}
-	if (player->getUnlocked() && player->getXP() < 6) 
-	{
-		QFont font("Courier", 15, QFont::DemiBold);
-		QFontMetrics fm(font);
-		int textWidth = fm.width("Level Up!\nRight Click for New Skill");
-
-		painter.setFont(font);
-
-		painter.translate(QPoint(400, 300));
-		painter.drawText(-textWidth/2, 0, "Level Up! Right Click for New Skill");
-	}
-	if (player->getXP() == 10)
-	{
-		QFont font("Courier", 15, QFont::DemiBold);
-		QFontMetrics fm(font);
-		int textWidth = fm.width("Level Up!");
-
-		painter.setFont(font);
-
-		painter.translate(QPoint(400, 300));
-		painter.drawText(-textWidth/2, 0, "Level Up!");
-		canSpawnArcher = true;
-	}
-	if (gameOver) 
-	{
-		QFont font("Courier", 15, QFont::DemiBold);
-		QFontMetrics fm(font);
-		int textWidth = fm.width("Game Over");
-
-		painter.setFont(font);
-
-		painter.translate(QPoint(400, 300));
-		painter.drawText(-textWidth/2, 0, "Game Over");
 	}
 }
 
@@ -160,7 +183,7 @@ void Game::mousePressEvent(QMouseEvent *event)
 				player->setAttacking(true);
 			else
 				player->setAttacking(false);
-		} else if(player->getType() == ASSN && player->getUnlocked()) {
+		} else if(player->getType() == ASSN && player->getUnlocked() && !player->exploding) {
 			player->restartFrameCount();
 			player->setAttacking(true);
 		}
@@ -191,15 +214,22 @@ void Game::mousePressEvent(QMouseEvent *event)
 void Game::timerEvent(QTimerEvent *event)
 {
 	frameTimer++;
+	score = player->getXP()*10;
+	emit scoreChanged(score);
+	
 	if(!player->updatePlayer())
 	{
 		gameOver = true;
+		std::cout << "SNATHOEUSANOTH.\n";
 		repaint();
-		killTimer(timerId);
 	}
 	for(int i=0;i<drones.size();i++)
 	{
 		drones.at(i)->updateEnemy(player->getLocation());
+	}
+	for(int i=0;i<archers.size();i++)
+	{
+		archers.at(i)->updateEnemy(player->getLocation());
 	}
 	checkCollision();
 	checkEnemyDeath();
@@ -212,14 +242,16 @@ void Game::keyPressEvent(QKeyEvent *event)
 {
 	switch (event->key()) 
 	{
-		case Qt::Key_Space:
-			
+		case Qt::Key_P:
+			paused = !paused;
+			if(paused)
+				killTimer(timerId);
+			else
+				timerId = startTimer(33);
 			break;
 		case Qt::Key_Escape:
 			qApp->exit();
 			break;
-//		default:
-//			QObject::keyPressEvent(event);
 	}
 }
 
@@ -261,7 +293,10 @@ void Game::checkCollision()
 				if(!player->getAttacking() && !player->getCanAttack() && frameTimer%30 == 0){
 					player->takeDamage(5);
 				} else if(player->getCanAttack() && !player->getAttacking()){
-					drones.at(i)->takeDamage(20);
+					if(level >= 3)
+						drones.at(i)->takeDamage(20);
+					else
+						drones.at(i)->takeDamage(12);
 					player->setCanAttack(false);
 				} else if(player->getAttacking() && !player->getCanAttack() && frameTimer%15 == 0){
 					drones.at(i)->takeDamage(5);
@@ -281,8 +316,16 @@ void Game::checkCollision()
 			if(player->getAttacking() && player->bombSet)
 			{
 				if(drones.at(i)->hitBox.intersects(player->bomb->hitBox))
-					drones.at(i)->takeDamage(15);
+					drones.at(i)->takeDamage(5);
 			}
+		}
+	}
+	for(int i=0;i<archers.size();i++)
+	{
+		if(player->hitBox.intersects(archers.at(i)->bullet->hitBox))
+		{
+			player->takeDamage(5);
+			archers.at(i)->makeBullet(player->getLocation());
 		}
 	}
 }
@@ -303,15 +346,25 @@ void Game::checkEnemyDeath()
 ///*** Keep the playing field populated ***///
 void Game::spawnEnemies()
 {
-	while(drones.size() < 10)
+	if(player->getXP() > 10)
 	{
-		drones.append(new Drone(rand()%800 + 1,rand()%600 + 1));
+		while(drones.size() < player->getXP())
+		{
+			drones.append(new Drone(rand()%800 + 1,rand()%600 + 1));
+		}
+	}
+	else
+	{
+		while(drones.size() < 10)
+		{
+			drones.append(new Drone(rand()%800 + 1,rand()%600 + 1));
+		}
 	}
 	if(canSpawnArcher)
 	{
 		while(archers.size()<4)
 		{
-			archers.append(new Archer(rand()%800 + 1,rand()%600 + 1));
+			archers.append(new Archer(rand()%700 + 51,rand()%500 + 51, player->getLocation().x(), player->getLocation().y()));
 		}
 	}
 }
@@ -322,12 +375,10 @@ void Game::startTankGame()
 	player = new Tank();
 	if (!gameStarted)
 	{
-		player->resetState();
-		//gameOver = FALSE;
-		//gameWon = FALSE;
 		gameStarted = true;
-		//emit scoreChanged(score);
-		//emit levelChanged(level);
+		emit scoreChanged(score);
+		emit levelChanged(level);
+		gameOver = false;
 		setMouseTracking(true);
 		timerId = startTimer(33);
 		spawnEnemies();
@@ -340,12 +391,10 @@ void Game::startAssassinGame()
 	player = new Assassin();
 	if (!gameStarted)
 	{
-		player->resetState();
-		//gameOver = FALSE;
-		//gameWon = FALSE;
 		gameStarted = true;
-		//emit scoreChanged(score);
-		//emit levelChanged(level);
+		emit scoreChanged(score);
+		emit levelChanged(level);
+		gameOver = false;
     	setMouseTracking(true);
 		timerId = startTimer(33);
 		spawnEnemies();

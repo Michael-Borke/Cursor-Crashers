@@ -12,15 +12,14 @@ class Tank : public Player
 {
 
 	public:
+		///*** Constructor ***///
 		Tank();
 		
+		///*** Member Functions ***///
 		void attackAnimation();
-		
-		//void resetState();
-		//int getHealth();
-		//void updatePlayer();
 
 	protected:
+		///*** Member Functions ***///
 		bool healthCheck();
 		void manaCheck();
 		void loadAnimations();

@@ -13,17 +13,15 @@ class Assassin : public Player
 {
 
 	public:
+		///*** Constructor/Destructor***///
 		Assassin();
 		~Assassin();
 		
+		///*** Member Functions ***///
 		void attackAnimation();
-		
-		//void resetState();
-		//int getHealth();
-		//void updatePlayer();
 
 	protected:
-		bool exploding;
+		///*** Member Functions ***///
 		bool healthCheck();
 		void manaCheck();
 		void loadAnimations();
